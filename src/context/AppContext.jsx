@@ -20,7 +20,7 @@ export function AppContextProvider({ children }) {
     const [activeFile, setActiveFile] = useState('/App.js');
     const [showCode, setShowCode] = useState(false);
 
-
+    console.log("active projects", activeProjects)
     //actions
 
     const checkSession = async () => {
@@ -36,7 +36,7 @@ export function AppContextProvider({ children }) {
 
     useEffect(() => {
         checkSession()
-    }, [checkSession])
+    }, [])
 
     const login = async ({ email, password }) => {
         try {
@@ -90,12 +90,11 @@ export function AppContextProvider({ children }) {
     }
 
     //Projects Action
-    const loadProjects = async () => {
+    const loadProjects = useCallback(async () => {
         if (!user) return;
         try {
             const { data } = await api.get('/api/projects');
             setProjects(data);
-            console.log("projects", data.projects, projects)
         }
         catch (err) {
             console.log("Load prject have an errror", err)
@@ -104,20 +103,39 @@ export function AppContextProvider({ children }) {
         } finally {
             setLoadingProjects(false);
         }
-    }
+    }, [user, navigate])
 
     const loadProject = async ({ id, silent = false }) => {
         if (!user) return;
-        if (!silent) return setActiveProjects(true);
+        if (!silent) {
+            setLoadingActiveProjects(true);
+        }
         try {
-            const { data } = await api.get(`/api/prjects${id}`);
-            setActiveFile(data);
-            const files = Object.keys(data.files)
-            setActiveProjects((prev) => {
-                if (files.includes(prev)) return [...prev, files];
-                if (files.includes("/App.js")) return "/App.js";
-                return files[0];
-            })
+            const { data } = await api.get(`/api/projects/${id}`);
+
+            setActiveProjects(data.project || data);
+
+            const files = Object.keys((data.project || data).files || {});
+
+            setActiveFile(
+
+                files.includes("/App.js")
+
+                    ? "/App.js"
+
+                    : files[0]
+
+            );
+            // const { data } = await api.get(`/api/projects/${id}`);
+            // setActiveFile(data);
+            // const files = Object.keys(data.files);
+            // setActiveFile(Object.keys(data.files)[0]);
+            // // setActiveProjects(data.project || data);
+            // setActiveProjects((prev) => {
+            //     if (files.includes(prev)) return [...prev, files];
+            //     if (files.includes("/App.js")) return "/App.js";
+            //     return files[0];
+            // })
 
         } catch (err) {
             console.log("loading project have an error", err)

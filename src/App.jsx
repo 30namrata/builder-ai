@@ -1,10 +1,12 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { UserGuestLogin, AuthPage } from './pages/AuthPage';
-import BuilderPage from './pages/BuilderPage';
-import PreviewPage from './pages/PreviewPage';
-import PublishPage from './pages/PublishPage';
-import HomePages from './pages/HomePages';
+import { AuthLayout, UserGuestLogin } from './pages/Layout.jsx';
+
+import BuilderPage from './pages/BuilderPage.jsx';
+import PreviewPage from './pages/PreviewPage.jsx';
+import PublishPage from './pages/PublishPage.jsx';
+import AuthPage from './pages/AuthPage.jsx';
+import HomePages from './pages/HomePages.jsx';
 
 function App() {
   return (
@@ -16,12 +18,13 @@ function App() {
         <Route path='/register' element={<AuthPage mode="register" />} />
       </Route>
       {/* Protected Routes */}
-      <Route element={<AuthPage />}>
+      <Route element={<AuthLayout />}>
         <Route path='/' element={<HomePages />} />
         <Route path='/builder/:id' element={<BuilderPage />} />
         <Route path='/preview/:id' element={<PreviewPage />} />
         <Route path='/publish/:id' element={<PublishPage />} />
       </Route>
+      <Route path='*' element={<Navigate to="/login" replace />} />
     </Routes>
 
   );

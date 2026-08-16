@@ -1,10 +1,17 @@
-import { Outlet } from "react-router-dom";
-function Layout() {
-    return (
-        <>
-            <h1>Layout</h1>
-            <Outlet />
-        </>
-    );
+import { useContextValue } from "../context/AppContext";
+import Loading from "../components/Loading";
+import { Navigate, Outlet } from "react-router-dom";
+
+export function AuthLayout() {
+    const { user, loadingUser } = useContextValue();
+    if (loadingUser) return <Loading />
+    if (!user) return <Navigate to="/login" replace />
+    return <Outlet />
 }
-export default Layout;
+export function UserGuestLogin() {
+    const { user, loadingUser } = useContextValue();
+
+    if (loadingUser) return <Loading />
+    if (user) return <Navigate to="/" replace />
+    return <Outlet />
+}

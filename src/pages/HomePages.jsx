@@ -1,8 +1,17 @@
 import PromptInput from "../components/PromptInput";
 import { useContextValue } from "../context/AppContext";
+import { homeTags } from "../assets/assets";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRightIcon, Clock10Icon, Trash2Icon } from "lucide-react";
+import moment from "moment";
 
 function HomePages() {
-    const { user } = useContextValue();
+    const { user, projects, genratingProjects, loadingProjects, loadingProject, loadProjects, handleGenrate, handleDelete, logout } = useContextValue();
+    const navigate = useNavigate();
+    useEffect(() => {
+        loadProjects()
+    }, [loadProjects])
     return (
         <div className="h-screen overflow-y-scroll text-white font-sans bg-[url('/bg-img.png')] bg-cover bg-center bg-no-repeat">
             <nav className="sticky top-0 z-10 flex items-center justify-between px-6 py-4">
@@ -14,47 +23,118 @@ function HomePages() {
                 </div>
                 <div className="flex items-center gap-4 text-sm font-medium text-zinc-300">
                     <span>{user?.name}</span>
-                    <button
-                        className="py-1.5 px-3 border border-white/20 rounded-md text-xs text-white bg-transparent hover:bg-white/10 cursor-pointer">
+                    <button onClick={logout} className="py-1.5 px-3 border border-white/20 rounded-md text-xs text-white bg-transparent hover:bg-white/10 cursor-pointer">
                         Sign out
                     </button>
                 </div>
             </nav>
-            {/* Heor section */}
+            {/* Hero section */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 pb-2 mt-8 xl:mt-28">
-                <div>
-                    <div className="w-full max-w-2xl flex flex-col items-center">
-                        <div className="flex items-center gap-2 p-1.5 pr-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-[13px] text-white/90">
-                            <span className="px-3 py-1 text-[11px] bg-red-700 rounded-full font-medium tracking-wider">
-                                PROMO
-                            </span>
-                            <span>Create your first project for free.</span>
-                        </div>
+
+                <div className="w-full max-w-2xl flex flex-col items-center">
+                    <div className="flex items-center gap-2 p-1.5 pr-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-[13px] text-white/90">
+                        <span className="px-3 py-1 text-[11px] bg-red-700 rounded-full font-medium tracking-wider">
+                            PROMO
+                        </span>
+                        <span>Create your first project for free.</span>
                     </div>
+                    {/* title */}
+                    <h1 className="text-center text-4xl md:text-6xl font-medium mt-6 text-white">
+                        Let's build your app together
+                    </h1>
+                    {/* Description */}
+                    <p className="text-center text-sm md:text-base mt-4 text-white/65 leading-relaxed ">
+                        Describe your idea and watch AI design, structure and launch your
+                        website instantly. No coding required.
+                    </p>
+                    {/* Prmopt input with glassmorphic */}
+                    <div className="w-full mt-6 flex">
+                        <PromptInput
+                            onSubmit={handleGenrate}
+                            loading={genratingProjects}
+                            variant="glass"
+                            placeholder="Create your portfolio website..."
+                            autoFocus
+                        />
+                    </div>
+                    {/* scrolling markquee tags */}
+                    <div className="w-full mt-4 masked-marquee max-w-2xl  overflow-hidden py-1 ">
+                        <div className="animate-marquee gap-3">
+                            {homeTags.map((tag, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleGenrate(tag)}
+                                    disabled={genratingProjects}
+                                    className="px-4 py-1.5 border rounded-full text-sm text-white bg-white/10 border-white/25 hover:bg-white/20 transition cursor-pointer shrink-0 font-medium"
+                                >
+                                    {tag}
+                                </button>
+                            ))}
+
+                        </div>
+
+                    </div>
+
+                    {/* Project Section*/}
+                    {!loadingProjects && projects && projects.length > 0 && (
+                        <div className="mt-12 w-full">
+                            <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                                <p className="text-xs font-medium uppercase text-zinc-100 tracking-widest">
+                                    All Projects
+                                </p>
+                                <span className="text-xs text-zinc-100 font-normal">
+                                    {projects?.length}{" "}
+                                    {projects?.length === 1 ? "project" : "projects"}
+                                </span>
+                            </div>
+                            {/* projects Grid */}
+                            <div className="space-y-2 max-h-[80vh] overflow-y-auto pr-1">
+                                {projects?.map((p) => (
+                                    <div
+                                        key={p._id}
+                                        className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 flex items-center justify-between group hover:border-white/20 hover:bg-white/10 cursor-pointer backdrop-blur-md transition-all"
+                                        onClick={() => navigate(`/builder/${p._id}`)}
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-white font-medium truncate">
+                                                {p.name}
+                                            </p>
+                                            <div className="flex items-center gap-3 mt-0.5">
+                                                <span className="text-xs text-zinc-300 font-normal flex items-center gap-1">
+                                                    <Clock10Icon size={10} />
+                                                    {moment(p.updatedAt || p.createdAt).fromNow()}
+                                                </span>
+                                                <span className="text-xs text-white/60 font-medium">v{p.version || 0}</span>
+
+                                            </div>
+
+                                            {/* Project content goes here */}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                className="hover:bg-white/10 p-1.5  opacity-0 group-hover:opacity-100 transition-opacity  rounded-md cursor-pointer text-zinc-200 hover:text-red-400"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDelete(p._id)
+                                                }}
+                                            >
+                                                <Trash2Icon size={14} />
+                                            </button>
+                                            <ArrowRightIcon size={14} className="text-zinc-200 group-hover:text-white" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+
+                        </div>
+                    )}
                 </div>
             </div>
-            {/* title */}
-            <h1 className="text-center text-4xl md:text-6xl font-medium mt-6 text-white">
-                Let's build your app together
-            </h1>
-            {/* Description */}
-            <p className="text-center text-sm md:text-base mt-4 text-white/65 leading-relaxed ">
-                Describe your idea and watch AI design, structure and launch your
-                website instantly. No coding required.
-            </p>
-            {/* Prmopt input with glassmorphic */}
-            <div className="w-full mt-6 flex justify-center">
-                <PromptInput
-                    onSubmit={() => { }}
-                    loading={false}
-                    variant="glass"
-                    placeholder="Create your portfolio website..."
-                    autoFocus
-                />
-            </div>
-
 
         </div>
+
+
     );
 }
 export default HomePages;

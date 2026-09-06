@@ -26,7 +26,7 @@ export function AppContextProvider({ children }) {
     const checkSession = async () => {
         try {
             const { data } = await api.get('/api/auth/me');
-            setUser(data.user)
+            setUser(data)
         } catch (error) {
             setUser(null)
         } finally {
@@ -40,16 +40,17 @@ export function AppContextProvider({ children }) {
 
 
     const login = async ({ email, password }) => {
+        debugger
         try {
             const { data } = await api.post('/api/auth/login', { email, password });
-            setUser(data.user);
+            setUser(data);
             navigate('/');
             toast.success("login successful")
 
 
         } catch (error) {
             console.log("error", error)
-            const err = error.response?.data?.error || "Login is not valid"
+            const err = error.response?.data?.error || error.response?.data?.message || "Login is not valid"
             throw new Error(err);
 
         }
@@ -58,13 +59,13 @@ export function AppContextProvider({ children }) {
     const register = async ({ name, email, password }) => {
         try {
             const { data } = await api.post('/api/auth/register', { name, email, password });
-            setUser(data.user);
+            setUser(data);
             navigate('/');
-            toast.success("Registration  successful")
+            toast.success("Registration successful")
 
         } catch (error) {
             console.log("error", error)
-            const err = error.response?.data?.error || "Registration is not valid"
+            const err = error.response?.data?.error || error.response?.data?.message || "Registration is not valid"
             throw new Error(err);
 
         }
@@ -170,14 +171,16 @@ export function AppContextProvider({ children }) {
     }, [activeProjects?._id, activeProjects?.status, loadProject, user]);
 
     const handleGenrate = useCallback(async (prompt) => {
+        debugger
         if (!user) return;
+        console.log(user)
         setGenratingProjects(true);
         try {
             const { data } = await api.post('/api/projects', { prompt })
             toast.success("Ai agent is planning structure of your website...");
             navigate(`/builder/${data._id}`)
         } catch (err) {
-            console.log("genrating project have an error", err);
+            // console.log("genrating project have an error", err.message);
             toast.error(err?.response?.data?.error || "failed to generate")
 
         } finally {

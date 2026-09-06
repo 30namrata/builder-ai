@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { detectDependencies } from "../utils/sandpackUtils";
+import { detectDependencies, prepareSandpackFiles } from "../utils/sandpackUtils";
 import { useContextValue } from "../context/AppContext";
 import SandPackErrorMonitor from "./SandpackErrorMonitor";
 import { useSandpack, SandpackCodeEditor, SandpackLayout, SandpackProvider, SandpackPreview } from "@codesandbox/sandpack-react";
@@ -96,16 +96,9 @@ const PreviewPanel = ({ projects, activeFile, showCode }) => {
         setLiveFiles(newFiles);
     }, []);
 
-    // Convert liveFiles into sandpack files format
+    // Convert liveFiles into sandpack files format with automatic import resolving and fallbacks
     const sandPackFiles = useMemo(() => {
-        if (!liveFiles || typeof liveFiles !== "object") return undefined;
-        let spFiles = {};
-        for (const [path, content] of Object.entries(liveFiles)) {
-            const fileCode = typeof content === 'string' ? content : content?.content || content?.code || "";
-            const formattedPath = path.startsWith("/") ? path : `/${path}`;
-            spFiles[formattedPath] = fileCode;
-        }
-        return Object.keys(spFiles).length > 0 ? spFiles : undefined;
+        return prepareSandpackFiles(liveFiles);
     }, [liveFiles]);
 
     // Detect dependencies

@@ -1,7 +1,7 @@
 function LoginLeft() {
     return (
         <div className="hidden lg:flex lg:w-2/5 bg-[url('/bg-img.png')] bg-no-repeat bg-cover bg-center flex-col justify-between p-12 shrink-0 select-none">
-            <div>
+            <div className="flex gap-3">
                 <img src="/logo.svg" alt="logo" className="size-9.5 mb-6" />
                 <span className="text-4xl font-medium text-white">Builder AI</span>
             </div>

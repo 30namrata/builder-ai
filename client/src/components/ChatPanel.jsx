@@ -15,7 +15,7 @@ function ChatPanel({ message, onsend, loading }) {
         <div className="h-full flex flex-col bg-white">
             {/* Message list */}
             <div className="flex-1 overflow-y-auto space-y-3 hide-scrollbar px-3">
-                {message.length === 0 && (
+                {message?.length === 0 && (
                     <div className="flex h-full items-center justify-center">
                         <div className="text-zinc-400 text-sm text-center">
                             Ask AI to modify your website

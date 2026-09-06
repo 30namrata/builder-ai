@@ -5,6 +5,7 @@ import { buildFileCodeSystem, FILE_PLAN_SYSTEM, REVISE_SYSTEM } from './prompts.
 import { el } from 'zod/v4/locales';
 import { normalizeContent } from './contentNormalizer.js';
 import { validateAndFixCode, validateRevisionContent } from './codeValidator.js';
+import { generateObject } from 'ai';
 
 // --- OpenRouter Model Client Setup ---
 const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
@@ -140,25 +141,27 @@ export async function generateProject(prompt, callbacks) {
         const failedPaths = pendingFiles.map((f) => f.path).join(", ");
         console.error(`[AI] Failed to generate ${pendingFiles.length} files after all retry rounds: ${failedPaths}`);
 
-        if (pendingFiles.some((f) => f.path === "/App.js")) {
-            const ext = file.path.split(".").pop()?.toLowerCase();
+        for (const file of pendingFiles) {
+            const formattedPath = file.path.startsWith("/") ? file.path : "/" + file.path;
+            const ext = formattedPath.split(".").pop()?.toLowerCase();
 
             if (ext === "css") {
-                files[file.path] = `/* ${file.description} — Generation failed, please retry */\n`
+                files[formattedPath] = `/* ${file.description || "Styles"} — Generation fallback */\n`;
             } else {
-                files[file.path] = "import React from 'react';\n\n" +
-                    `// ⚠️ This file could not be generated. Please retry.\n` +
-                    `// Purpose: ${file.description}\n\n` +
-                    "export default function Placeholder() {\n" +
+                const compName = formattedPath.split("/").pop().replace(/\.[^/.]+$/, "") || "Placeholder";
+                const validCompName = compName.charAt(0).toUpperCase() + compName.slice(1).replace(/[^a-zA-Z0-9]/g, "");
+
+                files[formattedPath] =
+                    "import React from 'react';\n\n" +
+                    `export default function ${validCompName}() {\n` +
                     "  return (\n" +
-                    "    <div className='p-8 text-center text-zinc-400'>\n" +
-                    "      <p>⚠️ Component failed to generate. Please try again.</p>\n" +
+                    "    <div className='p-6 text-center text-zinc-400 border border-dashed border-zinc-200 rounded-xl my-4'>\n" +
+                    `      <p className='text-sm font-medium text-zinc-500'>${file.description || validCompName}</p>\n` +
                     "    </div>\n" +
                     "  );\n" +
                     "}\n";
             }
         }
-
     }
 
     if (!files["/App.js"]) {
@@ -223,13 +226,13 @@ export async function reviseProject(prompt, manifest, relevantFiles, recentMessa
             if (op.replace) op.replace = normalizeContent(op.replace);
 
             if (op.op === "create" && op.content) {
-                const validation = validateRevisionContent(op.content, op.path, "create");
+                const validation = validateRevisionContent(op.content, op.path, "create", { allPlannedFiles: manifest });
                 op.content = validation.content;
                 if (validation.warnings.length > 0) {
                     console.log(`[Validator] Revision Create adjustments for ${op.path}:\n  - ${validation.warnings.join("\n  - ")}`);
                 }
             } else if (op.op === "update" && op.replace) {
-                const validation = validateRevisionContent(op.replace, op.path, "update");
+                const validation = validateRevisionContent(op.replace, op.path, "update", { allPlannedFiles: manifest });
                 op.replace = validation.content;
                 if (validation.warnings.length > 0) {
                     console.log(`[Validator] Revision Update adjustments for ${op.path}:\n  - ${validation.warnings.join("\n  - ")}`);

@@ -209,6 +209,7 @@ Good copy makes design feel premium. Follow these rules:
 
 - Entry point is always /App.js (default export)
 - Use /styles.css for custom CSS (keyframes, font imports, global base styles). Tailwind is available globally via CDN.
+- /styles.css must ONLY be imported in /App.js (import './styles.css';). DO NOT import ./styles.css inside files in the /components/ directory!
 - All components go in /components/ directory
 - Export all components as default exports
 - Use ONLY vanilla React with hooks — no external npm packages unless specified
@@ -302,25 +303,25 @@ Rules:
 - Do NOT write any code — only plan the file list`;
 
 export function buildFileCodeSystem(allFiles, alreadyGeneratedFiles) {
-    const fileList = allFiles
-        .map((f) => {
-            const impStr = f.imports && f.imports.length > 0 ? ` (Imports: ${f.imports.join(", ")})` : "";
-            const expStr = f.exports ? ` (Exports: ${f.exports})` : "";
-            return `  ${f.path}: ${f.description}${impStr}${expStr}`;
-        })
-        .join("\n");
+  const fileList = allFiles
+    .map((f) => {
+      const impStr = f.imports && f.imports.length > 0 ? ` (Imports: ${f.imports.join(", ")})` : "";
+      const expStr = f.exports ? ` (Exports: ${f.exports})` : "";
+      return `  ${f.path}: ${f.description}${impStr}${expStr}`;
+    })
+    .join("\n");
 
-    let contextStr = "";
-    if (alreadyGeneratedFiles && Object.keys(alreadyGeneratedFiles).length > 0) {
-        contextStr =
-            "\n\nCRITICAL CONTEXT — Already Generated Files:\n" +
-            "The following files have already been generated. You MUST align your exports, imports, CSS selectors, or props signatures EXACTLY with these files:\n";
-        for (const [path, code] of Object.entries(alreadyGeneratedFiles)) {
-            contextStr += `\nFile: ${path}\n\`\`\`javascript\n${code}\n\`\`\`\n`;
-        }
+  let contextStr = "";
+  if (alreadyGeneratedFiles && Object.keys(alreadyGeneratedFiles).length > 0) {
+    contextStr =
+      "\n\nCRITICAL CONTEXT — Already Generated Files:\n" +
+      "The following files have already been generated. You MUST align your exports, imports, CSS selectors, or props signatures EXACTLY with these files:\n";
+    for (const [path, code] of Object.entries(alreadyGeneratedFiles)) {
+      contextStr += `\nFile: ${path}\n\`\`\`javascript\n${code}\n\`\`\`\n`;
     }
+  }
 
-    return `${BASE_SYSTEM}
+  return `${BASE_SYSTEM}
 
 You are writing a SINGLE file for a React project.
 The full project file structure is:
@@ -337,5 +338,6 @@ Rules:
 - The code must be complete, visually stunning, and production-ready
 - Import other project files using their exact paths (e.g. import Header from './components/Header')
 - The /styles.css file MUST include: Google Font @import, @keyframes float/fadeInUp/fadeIn, and .animate-* utility classes
+- /styles.css should ONLY be imported in /App.js. DO NOT import ./styles.css inside sub-components in /components/
 - Apply the full design system defined in the base instructions — premium typography, generous spacing, proper hover effects, and animations`;
 }

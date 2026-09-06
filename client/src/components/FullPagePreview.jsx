@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useContextValue } from "../context/AppContext";
-import { detectDependencies } from "../utils/sandpackUtils";
+import { detectDependencies, prepareSandpackFiles } from "../utils/sandpackUtils";
 import SandPackErrorMonitor from "./SandpackErrorMonitor";
 import { SandpackLayout, SandpackProvider, SandpackPreview } from "@codesandbox/sandpack-react";
 
@@ -9,13 +9,7 @@ function FullPagePreview({ files }) {
 
     const { projects, activeFile, updateProjectFiles } = useContextValue();
     const sandPackFiles = useMemo(() => {
-        if (!files) return {};
-        let spFiles = {};
-        for (const [path, content] of Object.entries(files)) {
-            const fileCode = typeof content === 'string' ? content : content?.content || content?.code || "";
-            spFiles[path] = { code: fileCode };
-        }
-        return Object.keys(spFiles).length > 0 ? spFiles : undefined;
+        return prepareSandpackFiles(files);
     }, [files]);
 
     // Detect dependencies

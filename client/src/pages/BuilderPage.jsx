@@ -48,7 +48,7 @@ const BuilderPage = () => {
         if (!id) return;
         setPublishing(true)
         try {
-            let res = await api.post(`/projects/${id}/publish`);
+            let res = await api.post(`/api/projects/${id}/publish`);
             const url = `${window.location.origin}/publish/${id}`;
             setPublishUrl(url);
 
@@ -117,7 +117,7 @@ const BuilderPage = () => {
                         {/* sidebar content */}
                         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                             {leftTab === 'chat' ?
-                                <ChatPanel message={activeProjects?.messages} onsend={handleChat} loading={chatLoading} />
+                                <ChatPanel message={activeProjects?.message} onsend={handleChat} loading={chatLoading} />
                                 :
                                 <FileExplorer file={activeProjects.files} activeFile={activeFile} onFileSelect={(path) => {
                                     setActiveFile(path);

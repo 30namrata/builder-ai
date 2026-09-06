@@ -1,12 +1,10 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import { connectToDB } from "./config/db.js";
 import authRouter from "./routes/authroute.js";
 import projectRouter from "./routes/projectRoutes.js";
-
-dotenv.config();
 const app = express();
 connectToDB()
 app.use(cors({ origin: process.env.ORIGINS.split(","), credentials: true }));

@@ -31,7 +31,7 @@ const BuilderHeader = ({
                 />
 
                 <span className="text-sm font-semibold  truncate max-w-38 md:max-w-50">
-                    Helelo {projectName}
+                    Hello  {projectName}
                 </span>
 
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 font-medium">

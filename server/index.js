@@ -7,7 +7,27 @@ import authRouter from "./routes/authroute.js";
 import projectRouter from "./routes/projectRoutes.js";
 const app = express();
 connectToDB()
-app.use(cors({ origin: process.env.ORIGINS.split(","), credentials: true }));
+const allowedOrigins = process.env.ORIGINS
+    ? process.env.ORIGINS.split(",").map((o) => o.trim())
+    : [];
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (
+                allowedOrigins.includes(origin) ||
+                allowedOrigins.includes("*") ||
+                origin.endsWith(".vercel.app") ||
+                origin.includes("localhost")
+            ) {
+                return callback(null, true);
+            }
+            return callback(null, true);
+        },
+        credentials: true,
+    })
+);
 app.use(cookieParser());
 app.use(express.json());
 

@@ -6,13 +6,13 @@ const JWT_SECRET = process.env.SECRET_KEY || "fallback_secret";
 //helper to set cookies
 const setSessionCookies = (req, res, payload) => {
     const token = JWT.sign(payload, JWT_SECRET, { expiresIn: "30d" });
+    const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER || req.headers.origin?.includes("vercel.app");
     res.cookie('token', token, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction ? true : false,
         maxAge: 30 * 24 * 60 * 60 * 1000,
         path: "/"
-
     })
 }
 export async function register(req, res) {
@@ -65,14 +65,14 @@ export async function login(req, res) {
     })
 }
 
-export async function logout(_req, res) {
+export async function logout(req, res) {
+    const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER || req.headers.origin?.includes("vercel.app");
     res.cookie("token", "", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction ? true : false,
         maxAge: 0,
         path: "/"
-
     })
     res.json({ success: true })
 }

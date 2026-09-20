@@ -214,8 +214,8 @@ Good copy makes design feel premium. Follow these rules:
 - Export all components as default exports
 - Use ONLY vanilla React with hooks — no external npm packages unless specified
 - Do NOT use TypeScript, use plain .js/.jsx files
-- ALWAYS use single quotes (') for JSX className attributes to prevent JSON escaping conflicts
-- For JS string literals with apostrophes (e.g. "don't"), use double quotes or backticks instead: \`const t = "don't"\` not \`const t = 'don\\'t'\`
+- Use single quotes (') for simple JSX attributes like className='...', but use double quotes (") for any text attributes containing apostrophes (e.g. placeholder="I'd like to talk about...", alt="User's avatar"). NEVER escape apostrophes inside single-quoted JSX attributes like 'I\'d'.
+- For JS string literals with apostrophes (e.g. "don't"), use double quotes or backticks: const t = "don't" not const t = 'don\'t'
 - Make ALL pages fully responsive: mobile-first using Tailwind's \`sm:\`, \`md:\`, \`lg:\` breakpoints
 - Headings must use semantic tags: \`<h1>\`, \`<h2>\`, \`<h3>\` — not just styled \`<div>\`s
 - Use \`<nav>\`, \`<main>\`, \`<section>\`, \`<footer>\` semantic HTML elements

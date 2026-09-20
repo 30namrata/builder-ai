@@ -48,15 +48,18 @@ export function validateAndFixCode(code, filePath, context) {
         warnings.push(`${filePath}: Fixed 'for=' → 'htmlFor='`);
     }
 
-    // 4. Self-close void elements that aren't self-closed
-    for (const tag of VOID_ELEMENTS) {
-        // Match <tag ... > that is NOT already self-closed (no / before >)
-        const voidRegex = new RegExp(`<${tag}(\\s[^>]*?)?(?<!/)>`, "gi");
-        if (voidRegex.test(code)) {
-            code = code.replace(new RegExp(`<${tag}(\\s[^>]*?)?(?<!/)>`, "gi"), (match, attrs) => `<${tag}${attrs || ""} />`);
-            warnings.push(`${filePath}: Self-closed <${tag}> elements`);
-        }
+    // 3b. Fix single-quoted JSX attributes containing escaped apostrophes (e.g. placeholder='Hello, I\'d...') -> placeholder="Hello, I'd..."
+    const jsxEscapedQuoteRegex = /([a-zA-Z0-9_-]+)=['"]([^'"]*?\\'[^'"]*?)['"]/g;
+    if (jsxEscapedQuoteRegex.test(code)) {
+        code = code.replace(/([a-zA-Z0-9_-]+)=['"]([^'"]*?\\'[^'"]*?)['"]/g, (match, attr, val) => {
+            const cleanVal = val.replace(/\\'/g, "'").replace(/''/g, "'");
+            warnings.push(`${filePath}: Fixed single-quoted JSX attribute '${attr}' containing apostrophe`);
+            return `${attr}="${cleanVal}"`;
+        });
     }
+
+    // 4. Self-close void elements safely without corrupting JSX expressions/arrow functions
+    code = selfCloseVoidTags(code, warnings, filePath);
 
     // 5. Ensure exactly one default export exists
     const defaultExportCount = (code.match(/export\s+default\s+/g) || []).length;
@@ -147,16 +150,87 @@ export function validateRevisionContent(content, filePath, op) {
         warnings.push(`${filePath}: Fixed 'for=' → 'htmlFor=' in replacement`);
     }
 
-    // Self-close void elements
-    for (const tag of VOID_ELEMENTS) {
-        const voidRegex = new RegExp(`<${tag}(\\s[^>]*?)?(?<!/)>`, "gi");
-        if (voidRegex.test(content)) {
-            content = content.replace(new RegExp(`<${tag}(\\s[^>]*?)?(?<!/)>`, "gi"), (match, attrs) => `<${tag}${attrs || ""} />`);
-            warnings.push(`${filePath}: Self-closed <${tag}> in replacement`);
-        }
-    }
+    // Self-close void elements safely
+    content = selfCloseVoidTags(content, warnings, filePath);
 
     return { content, warnings };
+}
+
+// Safely self-close void HTML tags without corrupting JSX expressions (like arrow functions =>)
+function selfCloseVoidTags(code, warnings, filePath) {
+    if (!code) return code;
+    let modified = false;
+    for (const tag of VOID_ELEMENTS) {
+        const startRegex = new RegExp(`<${tag}\\b`, "gi");
+        let match;
+        let result = "";
+        let lastIndex = 0;
+
+        while ((match = startRegex.exec(code)) !== null) {
+            const tagStart = match.index;
+            result += code.slice(lastIndex, tagStart);
+
+            let i = tagStart + match[0].length;
+            let inSingleQuote = false;
+            let inDoubleQuote = false;
+            let inTemplate = false;
+            let braceDepth = 0;
+            let closed = false;
+            let isSelfClosed = false;
+
+            while (i < code.length) {
+                const char = code[i];
+                const prevChar = i > 0 ? code[i - 1] : "";
+
+                if (inSingleQuote) {
+                    if (char === "'" && prevChar !== "\\") inSingleQuote = false;
+                } else if (inDoubleQuote) {
+                    if (char === '"' && prevChar !== "\\") inDoubleQuote = false;
+                } else if (inTemplate) {
+                    if (char === "`" && prevChar !== "\\") inTemplate = false;
+                } else if (char === "{") {
+                    braceDepth++;
+                } else if (char === "}") {
+                    if (braceDepth > 0) braceDepth--;
+                } else if (braceDepth === 0) {
+                    if (char === "'") inSingleQuote = true;
+                    else if (char === '"') inDoubleQuote = true;
+                    else if (char === "`") inTemplate = true;
+                    else if (char === ">") {
+                        if (prevChar === "/") {
+                            isSelfClosed = true;
+                        }
+                        closed = true;
+                        i++;
+                        break;
+                    }
+                }
+                i++;
+            }
+
+            if (closed) {
+                const tagContent = code.slice(tagStart, i);
+                if (isSelfClosed) {
+                    result += tagContent;
+                } else {
+                    result += tagContent.slice(0, -1).trimEnd() + " />";
+                    modified = true;
+                }
+                lastIndex = i;
+                startRegex.lastIndex = i;
+            } else {
+                result += code.slice(tagStart, i);
+                lastIndex = i;
+            }
+        }
+        result += code.slice(lastIndex);
+        code = result;
+    }
+
+    if (modified && warnings && filePath) {
+        warnings.push(`${filePath}: Self-closed void elements`);
+    }
+    return code;
 }
 
 // --- Import Path Resolution Helpers ---

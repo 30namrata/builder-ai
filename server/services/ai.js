@@ -146,7 +146,21 @@ export async function generateProject(prompt, callbacks) {
             const ext = formattedPath.split(".").pop()?.toLowerCase();
 
             if (ext === "css") {
-                files[formattedPath] = `/* ${file.description || "Styles"} — Generation fallback */\n`;
+                files[formattedPath] = `/* Global CSS fallback */\n`;
+            } else if (formattedPath === "/App.js") {
+                files[formattedPath] =
+                    "import React from 'react';\n\n" +
+                    "export default function App() {\n" +
+                    "  return (\n" +
+                    "    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'sans-serif', padding: '24px', textAlign: 'center', backgroundColor: '#fafafa' }}>\n" +
+                    "      <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px', maxWidth: '420px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e4e4e7' }}>\n" +
+                    "        <div style={{ fontSize: '36px', marginBottom: '16px' }}>⏳</div>\n" +
+                    "        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#18181b', marginBottom: '8px' }}>API Daily Limit Exceeded</h2>\n" +
+                    "        <p style={{ fontSize: '14px', color: '#71717a', lineHeight: '1.5', marginBottom: '20px' }}>You have reached your daily free AI generation quota. Please try again tomorrow or add credits to your OpenRouter account.</p>\n" +
+                    "      </div>\n" +
+                    "    </div>\n" +
+                    "  );\n" +
+                    "}\n";
             } else {
                 const compName = formattedPath.split("/").pop().replace(/\.[^/.]+$/, "") || "Placeholder";
                 const validCompName = compName.charAt(0).toUpperCase() + compName.slice(1).replace(/[^a-zA-Z0-9]/g, "");

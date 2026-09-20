@@ -106,6 +106,33 @@ const PreviewPanel = ({ projects, activeFile, showCode }) => {
         return detectDependencies(liveFiles || {});
     }, [liveFiles]);
 
+    const isLimitError = projects?.status === "failed" || (projects?.error && /limit|rate limit|quota|429|free-models/i.test(projects.error));
+
+    if (isLimitError) {
+        return (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-50 p-6 text-center">
+                <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-sm border border-zinc-200 flex flex-col items-center">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 text-2xl border border-amber-100">
+                        ⏳
+                    </div>
+                    <h2 className="text-xl font-bold text-zinc-900 mb-2">API Daily Limit Exceeded</h2>
+                    <p className="text-sm text-zinc-500 mb-6 leading-relaxed">
+                        You have reached your daily free AI generation quota. You can try generating again tomorrow or add credits to your OpenRouter API key.
+                    </p>
+                    <div className="w-full p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-xs text-zinc-500 font-mono mb-6 overflow-x-auto text-left">
+                        {projects?.error || "Rate limit exceeded: free-models-per-day"}
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-sm font-semibold hover:bg-zinc-800 transition-all shadow-sm cursor-pointer"
+                    >
+                        Try Again Tomorrow
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full h-full flex flex-col overflow-hidden">
             <SandpackProvider

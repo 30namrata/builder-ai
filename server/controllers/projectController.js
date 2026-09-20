@@ -130,14 +130,18 @@ async function runBackgroundGenartion(projectId, prompt) {
     }
     catch (error) {
         console.error(`[Background AI] Error in project ${projectId}: ${error.message}`);
+        let userMessage = error.message;
+        if (/rate limit|free-models-per-day|429|quota|insufficient_quota|token limit/i.test(error.message)) {
+            userMessage = "API Daily Limit Exceeded: You have reached your daily free AI generation quota. You can try again tomorrow or add credits to your OpenRouter API account.";
+        }
         await Project.findByIdAndUpdate(projectId, {
             status: "failed",
-            error: error.message,
+            error: userMessage,
             currentFile: null,
             $push: {
                 message: {
                     role: "assistant",
-                    content: `❌ Project generation failed: ${error.message}`,
+                    content: `⚠️ ${userMessage}`,
                     timestamp: Date.now(),
                 }
             }

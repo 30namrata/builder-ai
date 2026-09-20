@@ -9,7 +9,7 @@ import { generateObject } from 'ai';
 
 // --- OpenRouter Model Client Setup ---
 const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
-const MAX_CONCURRENCY = parseInt(process.env.AI_MAX_CONCURRENCY || "6", 10)
+const MAX_CONCURRENCY = parseInt(process.env.AI_MAX_CONCURRENCY || "2", 10)
 
 const openrouter = createOpenAI({
     baseURL: "https://openrouter.ai/api/v1",
@@ -92,7 +92,7 @@ export async function generateProject(prompt, callbacks) {
     const files = {};
     let pendingFiles = plan.files.map((f) => ({ ...f }));
 
-    const maxRetryRounds = 2;
+    const maxRetryRounds = 3;
 
     for (let round = 0; round <= maxRetryRounds; round++) {
         if (pendingFiles.length === 0) break;

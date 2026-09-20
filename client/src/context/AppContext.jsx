@@ -156,7 +156,8 @@ export function AppContextProvider({ children }) {
         if (!activeProjects?._id || !user) return;
         const isOngoing =
             activeProjects?.status === "revising" ||
-            activeProjects?.status === "genrating" ||
+            activeProjects?.status === "generating" ||
+            activeProjects?.status === "planning" ||
             activeProjects?.status === "pending";
         if (isOngoing) {
             setChatLoading(true);

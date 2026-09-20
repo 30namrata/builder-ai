@@ -30,7 +30,7 @@ const BuilderPage = () => {
 
     useEffect(() => {
         if (!id || !activeProjects) return;
-        if (activeProjects.status === "pending" || activeProjects.status === "genrating") {
+        if (activeProjects.status === "pending" || activeProjects.status === "planning" || activeProjects.status === "generating") {
             const interval = setInterval(() => {
                 loadProject({ id, silent: true });
             }, 1500);
@@ -130,7 +130,7 @@ const BuilderPage = () => {
                     {/* rightTab */}
                     {/* Preview Code */}
                     <div className="flex-1 flex overflow-hidden">
-                        {activeProjects.status === "pending" || activeProjects.status === "genrating" ? (
+                        {activeProjects.status === "pending" || activeProjects.status === "planning" || activeProjects.status === "generating" ? (
                             <AgentProgressDashboard project={activeProjects} />
                         ) :
                             <PreviewPanel showCode={showCode} activeFile={activeFile} projects={activeProjects} />
